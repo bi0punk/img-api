@@ -1,53 +1,43 @@
+from fastapi import FastAPI, File, UploadFile, Form, Request
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from bin.filters import apply_filter
-from typing import List, Optional
-from fastapi import FastAPI, File, UploadFile
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import StreamingResponse
 import io
 
 app = FastAPI()
 
-# Read the PIL document to find out which filters are available out-of the box
+# Directory for templates
+templates = Jinja2Templates(directory="templates")
+
+# Serving static files (for Bootstrap CSS/JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 filters_available = [
-    "blur",
-    "contour",
-    "detail",
-    "edge_enhance",
-    "edge_enhance_more",
-    "emboss",
-    "find_edges",
-    "sharpen",
-    "smooth",
-    "smooth_more",
+    "blur", "contour", "detail", "edge_enhance", "edge_enhance_more",
+    "emboss", "find_edges", "sharpen", "smooth", "smooth_more",
 ]
 
-@app.api_route("/", methods=["GET", "POST"])
-def index():
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
     """
-    Return the usage instructions that specifies
-    1. which filters are available, and
-    2. the method format
+    Serve the HTML form for uploading an image and selecting a filter.
     """
-    response = {
-        "filters_available": filters_available,
-        "usage": {"http_method": "POST", "URL": "/<filter_available>/"},
-    }
-    return jsonable_encoder(response)
-
-
-@app.post("/{filter}")
-def image_filter(filter: str, img: UploadFile = File(...)):
+    return templates.TemplateResponse("index.html", {"request": request, "filters": filters_available})
+@app.post("/apply-filter", response_class=StreamingResponse)
+async def apply_image_filter(request: Request, filter: str = Form(...), img: UploadFile = File(...)):
     """
-    TODO:
-    1. Checks if the provided filter is available, if not, return an error
-    2. Check if a file has been provided in the POST request, if not return an error
-    3. Apply the filter using apply_filter() method from bin.filters
-    4. Return the filtered image as response
+    Apply the selected filter to the uploaded image and return the result.
     """
     if filter not in filters_available:
-        response = {"error": "incorrect filter"}
-        return jsonable_encoder(response)
+        return templates.TemplateResponse("error.html", {"request": request, "message": "Incorrect filter selected"})
 
-    filtered_image = apply_filter(img.file, filter)
+    # Apply the filter and get the result as a BytesIO object
+    filtered_image_io = apply_filter(img.file, filter)
 
-    return StreamingResponse(filtered_image, media_type="image/jpeg")
+    # Assuming filtered_image_io is a BytesIO object containing the image data.
+    # No need to call .save() on it; just reset the pointer to the beginning of the BytesIO stream.
+    filtered_image_io.seek(0)
+
+    # Return the filtered image directly
+    return StreamingResponse(filtered_image_io, media_type="image/jpeg")

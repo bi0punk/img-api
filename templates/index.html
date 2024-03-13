@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Image Filter App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Card -->
+                <div class="card shadow">
+                    <div class="card-body">
+                        <h1 class="card-title text-center mb-4">Upload Image for Filtering</h1>
+                        <!-- Form -->
+                        <form action="/apply-filter" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="img" class="form-label">Select image:</label>
+                                <input type="file" class="form-control" id="img" name="img" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="filter" class="form-label">Select filter:</label>
+                                <select class="form-select" id="filter" name="filter" required>
+                                    {% for filter in filters %}
+                                        <option value="{{ filter }}">{{ filter }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Apply Filter</button>
+                            </div>
+                        </form>
+                        <!-- /Form -->
+                    </div>
+                </div>
+                <!-- /Card -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
