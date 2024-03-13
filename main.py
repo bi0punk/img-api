@@ -5,7 +5,6 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 import io
 
-
 app = FastAPI()
 
 # Read the PIL document to find out which filters are available out-of the box
@@ -21,7 +20,6 @@ filters_available = [
     "smooth",
     "smooth_more",
 ]
-
 
 @app.api_route("/", methods=["GET", "POST"])
 def index():
