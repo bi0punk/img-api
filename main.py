@@ -1,9 +1,11 @@
-from fastapi import FastAPI, File, UploadFile, Form, Request
+from typing import Annotated
+
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from bin.filters import apply_filter
-import io
 
 app = FastAPI()
 
@@ -14,23 +16,38 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 filters_available = [
-    "blur", "contour", "detail", "edge_enhance", "edge_enhance_more",
-    "emboss", "find_edges", "sharpen", "smooth", "smooth_more",
+    "blur",
+    "contour",
+    "detail",
+    "edge_enhance",
+    "edge_enhance_more",
+    "emboss",
+    "find_edges",
+    "sharpen",
+    "smooth",
+    "smooth_more",
 ]
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """
     Serve the HTML form for uploading an image and selecting a filter.
     """
-    return templates.TemplateResponse("index.html", {"request": request, "filters": filters_available})
+    return templates.TemplateResponse("index.html", {"request": request, "filters": filters_available})  # type: ignore[arg-type]
+
+
 @app.post("/apply-filter", response_class=StreamingResponse)
-async def apply_image_filter(request: Request, filter: str = Form(...), img: UploadFile = File(...)):
+async def apply_image_filter(
+    request: Request,
+    filter: Annotated[str, Form()],
+    img: Annotated[UploadFile, File()],
+):
     """
     Apply the selected filter to the uploaded image and return the result.
     """
     if filter not in filters_available:
-        return templates.TemplateResponse("error.html", {"request": request, "message": "Incorrect filter selected"})
+        return templates.TemplateResponse("error.html", {"request": request, "message": "Incorrect filter selected"})  # type: ignore[arg-type]  # noqa: E501
 
     # Apply the filter and get the result as a BytesIO object
     filtered_image_io = apply_filter(img.file, filter)
