@@ -21,6 +21,7 @@ API en Python para aplicar filtros de imagen usando **Pillow**, con una interfaz
 - Formulario HTML (`templates/index.html`) para subir una imagen y seleccionar un filtro.
 - **10 filtros** del módulo `PIL.ImageFilter`: `blur`, `contour`, `detail`, `edge_enhance`, `edge_enhance_more`, `emboss`, `find_edges`, `sharpen`, `smooth`, `smooth_more`.
 - Validación del filtro mediante lista blanca (evita valores arbitrarios).
+- Página de error (`templates/error.html`) para filtros no válidos.
 - Devolución del resultado como imagen JPEG vía `StreamingResponse`.
 - Preparado para deploy con `uvicorn`/`gunicorn` (ver `Procfile`).
 
@@ -43,7 +44,7 @@ flowchart LR
 | Lenguaje   | Python 3                                     |
 | API        | FastAPI 0.65, uvicorn 0.14                    |
 | Imágenes   | Pillow 8.2                                    |
-| Frontend   | Jinja2 3.1 (Bootstrap)                        |
+| Frontend   | Jinja2 3.0 (Bootstrap)                        |
 
 ## Estructura del repositorio
 
@@ -53,11 +54,15 @@ img-api/
 ├── bin/
 │   └── filters.py      # Lógica de filtros (Pillow)
 ├── templates/
-│   └── index.html      # Formulario de subida
+│   ├── index.html      # Formulario de subida
+│   └── error.html      # Página de error
+├── static/
+│   └── .gitkeep        # Directorio requerido por StaticFiles
+├── tests/
+│   └── test_smoke.py   # Smoke tests
 ├── requirements.txt
 ├── Dockerfile          # Imagen de desarrollo (devcontainer)
-├── Procfile            # web: uvicorn main:app
-└── time_test.py        # Benchmark de tiempos de filtros
+└── Procfile            # web: uvicorn main:app
 ```
 
 ## Instalación
@@ -79,10 +84,11 @@ uvicorn main:app --host 0.0.0.0 --port 5000
 
 Abre `http://localhost:8000`, sube una imagen, elige un filtro y descarga el resultado.
 
-Probador de tiempos:
+Para ejecutar los tests:
 
 ```bash
-python time_test.py
+pip install pytest
+pytest -q
 ```
 
 ## Roadmap
